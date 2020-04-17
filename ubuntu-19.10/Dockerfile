@@ -13,7 +13,7 @@ RUN useradd -m -s /bin/bash admin \
     # && echo "kernel.yama.ptrace_scope = 0" > /etc/sysctl.d/10-ptrace.conf, \
     && sysctl -p
 
-RUN apt-get update && apt-get upgrade
+RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -yq \
     curl \
     wget \
@@ -50,6 +50,7 @@ RUN wget -q https://github.com/neovim/neovim/archive/v0.4.3.zip \
 RUN pip3 install --upgrade pynvim
 
 # Install node
+# https://github.com/nodesource/distributions#installation-instructions
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - \
     && apt-get install -yq nodejs
 
@@ -60,7 +61,7 @@ RUN npm install -g neovim
 USER admin
 ## dotfiles
 ## Need LC_TYPE for gef (https://github.com/hugsy/gef/issues/195)
-RUN git clone https://github.com/yasmu/dotfiles.git /home/admin/dotfiles \
+RUN git clone https://github.com/teawhy1230/dotfiles.git /home/admin/dotfiles \
     && mkdir -p /home/admin/.config/ \
     && ln -s /home/admin/dotfiles/nvim /home/admin/.config/nvim \
     && ln -s /home/admin/dotfiles/.tmux.conf /home/admin/.tmux.conf \
@@ -84,7 +85,7 @@ RUN curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.
 RUN nvim -c "try | call dein#update() | finally | qall! | endtry"
 # install extensios from shell
 # https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions
-RUN nvim -c 'CocInstall -sync coc-python coc-tsserver | q'
+RUN nvim -c 'CocInstall -sync coc-python coc-tsserver coc-clangd | q'
 
 RUN pip3 install jedi
 

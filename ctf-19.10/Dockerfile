@@ -5,6 +5,8 @@ RUN mkdir /home/admin/tools
 
 USER root
 
+RUN echo "kernel.yama.ptrace_scope = 0" > /etc/sysctl.d/10-ptrace.conf
+
 # ROPGadget
 RUN git clone https://github.com/JonathanSalwan/ROPgadget /home/admin/tools/ROPgadget \
     && cd /home/admin/tools/ROPgadget \
@@ -22,7 +24,7 @@ RUN wget -q https://github.com/downloads/0vercl0k/rp/rp-lin-x64 -O /usr/local/bi
 USER admin
 
 # pwntools
-RUN pip3 install pwntools
+RUN python3 -m pip install --upgrade git+https://github.com/Gallopsled/pwntools.git@dev3
 
 # gef
 # Need LC_TYPE for gef (https://github.com/hugsy/gef/issues/195)
