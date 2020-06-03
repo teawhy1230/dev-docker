@@ -32,13 +32,30 @@ RUN apt-get install -yq \
     libtool-bin \
     autoconf \
     automake \
-    cmake \
     g++ \
     pkg-config \
-    unzip
+    unzip \
+    software-properties-common \
+    zlib1g-dev \
+    apt-transport-https
+
+# Install clang
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
+    && yes | apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main" \
+    && apt-get update -y \
+    && apt-get install -y clang-6.0
+
+# Install cmake
+RUN cd /opt \
+    && wget https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-Linux-x86_64.tar.gz \
+    && tar zxvf cmake-3.10.3-Linux-x86_64.tar.gz \
+    && ln -s /opt/cmake-3.10.3-Linux-x86_64/bin/cmake /usr/local/bin/cmake \
+    && ln -s /opt/ccmake-3.10.3-Linux-x86_64/bin/ccmake /usr/local/bin/ccmake \
+    && ln -s /opt/ctest-3.10.3-Linux-x86_64/bin/ctest /usr/local/bin/ctest
 
 # Install neovim
-RUN wget -q https://github.com/neovim/neovim/archive/v0.4.3.zip \
+RUN cd /opt \
+    && wget -q https://github.com/neovim/neovim/archive/v0.4.3.zip \
     && unzip v0.4.3.zip \
     && cd neovim-0.4.3 \
     && make CMAKE_BUILD_TYPE=Release \
@@ -54,8 +71,50 @@ RUN pip3 install --upgrade pynvim
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - \
     && apt-get install -yq nodejs
 
+# Install yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && apt-get install -y yarn
+
 RUN npm install -g neovim
 
+# Install dotnet
+# https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
+RUN cd /opt \
+    && wget https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && add-apt-repository universe \
+    && apt-get update \
+    && apt-get install -y apt-transport-https \
+    && apt-get update \
+    && apt-get install -y dotnet-sdk-3.1 \
+    && add-apt-repository universe \
+    && apt-get update \
+    && apt-get install apt-transport-https \
+    && apt-get update \
+    && apt-get install -y dotnet-runtime-3.1
+
+# Build mpls
+RUN cd /opt \
+    && git clone --depth=1 https://github.com/Microsoft/python-language-server.git \
+    && cd python-language-server/src/LanguageServer/Impl \
+    && dotnet build
+
+# update libstdc++.so.6 for ccls
+# https://qiita.com/miyagi1024/items/98a881409ab7cb960aa7
+RUN yes | add-apt-repository ppa:ubuntu-toolchain-r/test \
+    && apt update -y \
+    && apt upgrade -y
+
+# Build and install ccls
+RUN cd /opt \
+    && git clone --depth=1 --recursive https://github.com/MaskRay/ccls \
+    && cd ccls \
+    && wget -c http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
+    && tar xf clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
+    && cmake -H. -BRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PWD/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04 \
+    && cmake --build Release \
+    && ln -s /opt/ccls/Release/ccls /usr/local/bin/ccls
 
 # Install user level stuff
 USER admin
@@ -73,21 +132,18 @@ RUN git clone https://github.com/teawhy1230/dotfiles.git /home/admin/dotfiles \
     && echo "source /etc/bash_completion.d/git-prompt" >> /home/admin/.bashrc \
     && chown -R admin:admin /home/admin/dotfiles
 
-
 # Install dein
 RUN curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh > /home/admin/.config/nvim/installer.sh \
     && sh /home/admin/.config/nvim/installer.sh /home/admin/.config/nvim/dein \
     && rm /home/admin/.config/nvim/installer.sh
-
 
 # update dein from shell
 # https://github.com/Shougo/dein.vim/blob/540345405ab9184459bf7a20519e0a5af2da5330/doc/dein.txt#L1182
 RUN nvim -c "try | call dein#update() | finally | qall! | endtry"
 # install extensios from shell
 # https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions
-RUN nvim -c 'CocInstall -sync coc-python coc-tsserver coc-clangd | q'
+RUN nvim -c "CocInstall -sync coc-tsserver | qall!"
 
-RUN pip3 install jedi
 
 WORKDIR /home/admin
 

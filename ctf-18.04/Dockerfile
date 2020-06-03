@@ -1,10 +1,13 @@
-FROM yasmu/dev-docker:ubuntu-19.10
+FROM dev-ubuntu-18.04:latest
 
 
 RUN mkdir /home/admin/tools
 
 USER root
 
+RUN apt-get update
+
+# gdb attach
 RUN echo "kernel.yama.ptrace_scope = 0" > /etc/sysctl.d/10-ptrace.conf
 
 # ROPGadget
@@ -13,7 +16,7 @@ RUN git clone https://github.com/JonathanSalwan/ROPgadget /home/admin/tools/ROPg
     && python3 setup.py install
 
 # Install one_gadget
-RUN apt-get install -yq ruby \
+RUN apt-get install -y ruby \
     && gem install one_gadget
 
 # rp++
@@ -25,6 +28,7 @@ USER admin
 
 # pwntools
 RUN python3 -m pip install --upgrade git+https://github.com/Gallopsled/pwntools.git@dev3
+
 
 # gef
 # Need LC_TYPE for gef (https://github.com/hugsy/gef/issues/195)
