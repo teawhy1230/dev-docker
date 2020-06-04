@@ -32,7 +32,6 @@ RUN apt-get install -yq \
     libtool-bin \
     autoconf \
     automake \
-    g++ \
     pkg-config \
     unzip \
     software-properties-common \
@@ -40,18 +39,18 @@ RUN apt-get install -yq \
     apt-transport-https
 
 # Install clang
-RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - \
-    && yes | apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main" \
-    && apt-get update -y \
-    && apt-get install -y clang-6.0
+RUN cd /opt \
+    && wget https://releases.llvm.org/7.0.1/clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz\
+    && tar xf clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+
+ENV PATH $PATH:/opt/clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04/bin
 
 # Install cmake
 RUN cd /opt \
     && wget https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-Linux-x86_64.tar.gz \
-    && tar zxvf cmake-3.10.3-Linux-x86_64.tar.gz \
-    && ln -s /opt/cmake-3.10.3-Linux-x86_64/bin/cmake /usr/local/bin/cmake \
-    && ln -s /opt/ccmake-3.10.3-Linux-x86_64/bin/ccmake /usr/local/bin/ccmake \
-    && ln -s /opt/ctest-3.10.3-Linux-x86_64/bin/ctest /usr/local/bin/ctest
+    && tar zxvf cmake-3.10.3-Linux-x86_64.tar.gz
+
+ENV PATH $PATH:/opt/cmake-3.10.3-Linux-x86_64/bin
 
 # Install neovim
 RUN cd /opt \
@@ -106,13 +105,16 @@ RUN yes | add-apt-repository ppa:ubuntu-toolchain-r/test \
     && apt update -y \
     && apt upgrade -y
 
+# install g++ 7
+RUN apt-get remove -y --purge g++ \
+    && apt install -y g++-7 \
+    && ln -s /usr/bin/g++-7 /usr/bin/g++
+
 # Build and install ccls
 RUN cd /opt \
     && git clone --depth=1 --recursive https://github.com/MaskRay/ccls \
     && cd ccls \
-    && wget -c http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
-    && tar xf clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
-    && cmake -H. -BRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PWD/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04 \
+    && cmake -H. -BRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04/ \
     && cmake --build Release \
     && ln -s /opt/ccls/Release/ccls /usr/local/bin/ccls
 
