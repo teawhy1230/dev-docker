@@ -1,4 +1,4 @@
-FROM ty60/dev-docker:ubuntu-18.04
+FROM ty60/dev-docker:ubuntu-20.04
 
 
 RUN mkdir /home/admin/tools
