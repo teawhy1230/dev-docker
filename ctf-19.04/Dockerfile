@@ -8,7 +8,6 @@ USER root
 RUN apt-get update -y \
     && apt-get install -y python3 python3-pip python3-dev git libssl-dev libffi-dev build-essential
 
-
 # gdb attach
 RUN echo "kernel.yama.ptrace_scope = 0" > /etc/sysctl.d/10-ptrace.conf
 
@@ -25,11 +24,10 @@ RUN apt-get install -y ruby \
 RUN wget -q https://github.com/downloads/0vercl0k/rp/rp-lin-x64 -O /usr/local/bin/rp++ \
     && chmod 755 /usr/local/bin/rp++
 
-
 USER admin
 
 # pwntools
-RUN python3 -m pip install --upgrade git+https://github.com/Gallopsled/pwntools.git@dev
+RUN python3 -m pip install --upgrade pwntools
 
 
 # gef
