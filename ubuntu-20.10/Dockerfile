@@ -80,12 +80,12 @@ RUN wget https://packages.microsoft.com/config/ubuntu/20.10/packages-microsoft-p
     && apt-get update \
     && apt-get install -y apt-transport-https \
     && apt-get update \
-    && apt-get install -y dotnet-sdk-5.0 \
+    && apt-get install -y dotnet-sdk-3.1 \
     && add-apt-repository universe \
     && apt-get update \
     && apt-get install apt-transport-https \
     && apt-get update \
-    && apt-get install -y dotnet-runtime-5.0
+    && apt-get install -y dotnet-runtime-3.1
 
 # Build mpls
 RUN cd /opt \
