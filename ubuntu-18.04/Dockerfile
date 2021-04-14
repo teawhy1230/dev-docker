@@ -66,7 +66,7 @@ RUN npm install -g neovim
 
 # Install dotnet
 # https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
-RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+RUN wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && add-apt-repository universe \
     && apt-get update \
@@ -89,7 +89,7 @@ RUN cd /opt \
 RUN cd /opt \
     && git clone --depth=1 --recursive https://github.com/MaskRay/ccls \
     && cd ccls \
-    && wget -c http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
+    && wget -q -c http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
     && tar xf clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
     && cmake -H. -BRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PWD/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04 \
     && cmake --build Release \
@@ -121,7 +121,7 @@ RUN curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.
 RUN nvim -c "try | call dein#update() | finally | qall! | endtry"
 # install extensios from shell
 # https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions
-RUN nvim -c "CocInstall -sync coc-tsserver | qall!"
+# RUN nvim -c "CocInstall -sync coc-tsserver | qall!"
 
 
 WORKDIR /home/admin

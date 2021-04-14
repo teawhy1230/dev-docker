@@ -43,20 +43,20 @@ RUN apt-get install -yq \
 
 # Install clang
 RUN cd /opt \
-    && wget https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-pc-linux-gnu.tar.xz \
+    && wget -q https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-pc-linux-gnu.tar.xz \
     && tar xf clang+llvm-9.0.0-x86_64-pc-linux-gnu.tar.xz
 
 ENV PATH $PATH:/opt/clang+llvm-9.0.0-x86_64-pc-linux-gnu/bin
 
 # Install neovim
-RUN wget -q https://github.com/neovim/neovim/archive/v0.4.3.zip \
-    && unzip v0.4.3.zip \
-    && cd neovim-0.4.3 \
+RUN wget -q https://github.com/neovim/neovim/archive/refs/tags/nightly.zip \
+    && unzip nightly.zip \
+    && cd neovim-nightly \
     && make CMAKE_BUILD_TYPE=Release \
     && make install \
     && cd ../ \
-    && rm v0.4.3.zip \
-    && rm -rf neovim-0.4.3
+    && rm nightly.zip \
+    && rm -rf neovim-nightly
 
 RUN pip3 install --upgrade pynvim
 
@@ -74,7 +74,7 @@ RUN npm install -g neovim
 
 # Install dotnet
 # https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
-RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+RUN wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && add-apt-repository universe \
     && apt-get update \
@@ -128,9 +128,6 @@ RUN curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.
 # update dein from shell
 # https://github.com/Shougo/dein.vim/blob/540345405ab9184459bf7a20519e0a5af2da5330/doc/dein.txt#L1182
 RUN nvim -c "try | call dein#update() | finally | qall! | endtry"
-# install extensios from shell
-# https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions
-RUN nvim -c "CocInstall -sync coc-tsserver | qall!"
 
 
 WORKDIR /home/admin
